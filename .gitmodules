@@ -1,0 +1,12 @@
+[submodule "binutils"]
+	path = binutils
+	url = git://tima-sls.imag.fr/binutils.git
+[submodule "gdb"]
+	path = gdb
+	url = git://tima-sls.imag.fr/gdb.git
+[submodule "newlib"]
+	path = newlib
+	url = git://tima-sls.imag.fr/newlib.git
+[submodule "gcc"]
+	path = gcc
+	url = git://tima-sls.imag.fr/gcc.git
