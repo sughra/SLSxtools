@@ -1,0 +1,347 @@
+#!/bin/bash
+#
+# DNAOS Cross-compile toolchain compilation script                     
+# Copyright (C) 2009, 2011 nfournel, TIMA Laboratory                         
+#                                                                      
+# This program is free software: you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation, either version 3 of the License, or    
+# (at your option) any later version.                                  
+#                                                                      
+# This program is distributed in the hope that it will be useful,      
+# but WITHOUT ANY WARRANTY; without even the implied warranty of       
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        
+# GNU General Public License for more details.                         
+#                                                                      
+# You should have received a copy of the GNU General Public License    
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+BINUTILS_CFLAGS=
+
+GCC_CFLAGS=
+
+NEWLIB_CFLAGS=
+
+GDB_CFLAGS="-DHAVE_DECL_STPCPY=1"
+
+#
+# Define the temporary directories
+#
+
+HERE=`pwd`
+
+
+NB_PROC=`cat /proc/cpuinfo | grep "processor" | wc -l`
+JOPT=-j${NB_PROC}
+
+TMP_DIR=$PWD/build
+SRC_DIR=$PWD
+DLS_DIR=$PWD/sources
+STAMPS_DIR=${TMP_DIR}/stamps
+
+#
+# Sources definitions
+#
+
+#PATCH_URL=git://tima-sls.imag.fr
+##PATCH_REPOSITORY=GnuPatches
+#PATCH_REPOSITORY=Gnew_patches
+
+# binutils stuffs
+# BINUTILS_DIR=${BINUTILS_BASE}
+# BINUTILS_ARCHIVE=${BINUTILS_BASE}.tar.bz2
+# BINUTILS_REPOSITORY="http://ftp.gnu.org/gnu/binutils"
+BINUTILS_BASE=binutils
+BINUTILS_DIR=${BINUTILS_BASE}
+
+# GCC stuffs
+# GCC_BASE=gcc-${GCC_VER}
+# GCC_DIR=${GCC_BASE}
+# GCC_ARCHIVE=${GCC_BASE}.tar.bz2
+# GCC_REPOSITORY="ftp://ftp.gnu.org/gnu/gcc/gcc-"${GCC_VER}
+GCC_BASE=gcc
+GCC_DIR=${GCC_BASE}
+
+# Newlib stuffs
+# NEWLIB_BASE=newlib-${NEWLIB_VER}
+# NEWLIB_DIR=${NEWLIB_BASE}
+# NEWLIB_ARCHIVE=${NEWLIB_BASE}.tar.gz
+# NEWLIB_REPOSITORY="ftp://sources.redhat.com/pub/newlib"
+NEWLIB_BASE=newlib
+NEWLIB_DIR=${NEWLIB_BASE}
+
+# gdb stuffs
+# GDB_BASE=gdb-${GDB_VER}
+# GDB_DIR=${GDB_BASE}
+# GDB_ARCHIVE=${GDB_BASE}.tar.bz2
+# GDB_REPOSITORY="ftp://ftp.gnu.org/gnu/gdb"
+GDB_BASE=gdb
+GDB_DIR=${GDB_BASE}
+
+#
+# Outputs Functions
+#
+
+print_greatings()
+{
+    echo "==================================="
+    echo -en "="
+    echo -en "\033[01;32m Installing DNAOS Toolchain      \033[00m"
+    echo "="
+    echo "==================================="
+
+    echo "Install dir  : "${INSTALL_DIR}
+    echo "Build dir    : "${TMP_DIR}
+    echo "To autopsy failed steps, you can find logs in 'logs' dir of each build dir"
+}
+
+print_step()
+{
+    echo "==================================="
+    echo -en "\033[01;32m"
+    echo " "$1
+    echo -en "\033[00m"
+    echo "==================================="
+}
+
+print_substep()
+{
+    echo "* "$1
+}
+
+print_error()
+{
+    echo -en "\033[01;31m"
+    echo "!---------------------------------!"
+    echo "! "$1
+    echo "!---------------------------------!"
+    echo -en " \033[00m"
+}
+
+install_error(){
+    print_error "Error in installation ..."
+    exit
+}
+
+#
+# Installation functions
+#
+
+binutils_install()
+{
+  print_step "Installing "${BINUTILS_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr binutils_build
+  mkdir -p binutils_build
+  cd binutils_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${BINUTILS_CFLAGS}             \
+  ${SRC_DIR}/${BINUTILS_DIR}/configure  \
+  --prefix=${INSTALL_DIR}               \
+  --target=${TARGET}                    \
+  --disable-nls                         \
+  --disable-werror                      \
+  --enable-multilib     &> logs/configure.log || return
+
+  print_substep "compiling ..."
+  make ${JOPT}          &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install ${JOPT}  &> logs/install.log   || return
+
+  touch ${STAMPS_DIR}/binutils_installed
+}
+
+gcc_1_install()
+{
+  print_step "Installing "${GCC_BASE}" bootstrap"
+
+  cd ${TMP_DIR}
+
+  rm -fr gcc_build
+  mkdir -p gcc_build
+  cd gcc_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+
+#  --enable-multilib                 \
+  CFLAGS=${GCC_CFLAGS}              \
+  ${SRC_DIR}/${GCC_DIR}/configure   \
+  --prefix=${INSTALL_DIR}           \
+  --target=${TARGET}                \
+  --disable-nls                     \
+  --with-newlib                     \
+  --enable-interwork                \
+  --enable-languages=c      &> logs/configure.log || return
+
+  print_substep "compiling ..."
+  make all-gcc ${JOPT}      &> logs/make_1.log    || return
+
+  print_substep "installing ..."
+  make install-gcc ${JOPT}  &> logs/install_1.log || return
+
+  touch ${STAMPS_DIR}/gcc_1_installed
+}
+
+newlib_install()
+{
+  print_step "Installing "${NEWLIB_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr newlib_build
+  mkdir -p newlib_build
+  cd newlib_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${NEWLIB_CFLAGS}                 \
+  ${SRC_DIR}/${NEWLIB_DIR}/configure      \
+  --prefix=${INSTALL_DIR}                 \
+  --target=${TARGET}                      \
+  --enable-multilib                       \
+  --disable-nls                           \
+  --enable-interwork                      \
+  --enable-newlib-io-long-long            \
+  --enable-newlib-io-long-double          \
+  --enable-newlib-io-c99-formats          \
+  --disable-newlib-may-supply-syscalls    \
+  --enable-newlib-multithread             \
+  --disable-newlib-supplied-syscalls      &> logs/configure.log || return
+
+  print_substep "compiling ..." 
+  make ${JOPT}                            &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install ${JOPT}                    &> logs/install.log   || return
+
+  touch ${STAMPS_DIR}/newlib_installed
+}
+
+gcc_2_install()
+{
+  print_step "Installing "${GCC_DIR}" final"
+
+  cd ${TMP_DIR}/gcc_build
+
+  print_substep "compiling ..." 
+  make all ${JOPT}                      &> logs/make_2.log    || return
+
+  print_substep "installing ..."
+  make install ${JOPT}                  &> logs/install_2.log || return
+
+  touch ${STAMPS_DIR}/gcc_2_installed
+}
+
+gdb_install()
+{
+  print_step "Installing "${GDB_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr gdb_build
+  mkdir -p gdb_build
+  cd gdb_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${GDB_CFLAGS}            \
+  ${SRC_DIR}/${GDB_DIR}/configure \
+  --prefix=${INSTALL_DIR}     \
+  --target=${TARGET}          \
+  --disable-nls               \
+  --disable-builtins          \
+  --enable-multilib           &> logs/configure.log || return
+
+  print_substep "compiling ..." 
+  make ${JOPT}                &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install ${JOPT}        &> logs/install.log || return
+
+  touch ${STAMPS_DIR}/gdb_installed
+}
+
+print_usage()
+{
+  echo "Usage : build-xtool {arm, microblaze, mips, x86, native} INSTALL_DIR"
+  exit
+}
+
+#
+# Main
+#
+
+if [ $# -lt 2 ]; then 
+   print_usage $0
+fi
+
+case "$1" in
+arm*)
+ARCH=arm
+;;
+
+native* | x86*)
+ARCH=i386
+;;
+
+mips*)
+ARCH=mips
+;;
+
+microblaze*)
+ARCH=microblaze
+;;
+
+*)
+print_usage $0
+;;
+esac
+
+TARGET=${ARCH}-sls-dnaos
+
+if [ "${2:0:1}" = "/" ] ; then
+  INSTALL_DIR=$2 ;
+else
+  INSTALL_DIR=$PWD/$2 ;
+fi ;
+
+print_greatings
+
+mkdir -p ${TMP_DIR}
+mkdir -p ${DLS_DIR}
+mkdir -p ${INSTALL_DIR}
+mkdir -p ${STAMPS_DIR}
+
+#
+# Perform the installation process
+#
+
+[ -e ${STAMPS_DIR}/binutils_installed ] || \
+    binutils_install || install_error
+
+[ -e ${STAMPS_DIR}/gcc_1_installed ] || \
+    gcc_1_install    || install_error
+
+export PATH=$PATH:${INSTALL_DIR}/bin
+
+[ -e ${STAMPS_DIR}/newlib_installed ] || \
+    newlib_install   || install_error
+
+[ -e ${STAMPS_DIR}/gcc_2_installed ] || \
+    gcc_2_install    || install_error
+
+[ -e ${STAMPS_DIR}/gdb_installed ] || \
+    gdb_install      || install_error
+
+print_step "Done."
