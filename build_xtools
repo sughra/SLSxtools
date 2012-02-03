@@ -30,15 +30,14 @@ GDB_CFLAGS="-DHAVE_DECL_STPCPY=1"
 #
 
 HERE=`pwd`
+TOOL="$0"
 
 
 NB_PROC=`cat /proc/cpuinfo | grep "processor" | wc -l`
 JOPT=-j${NB_PROC}
 
-TMP_DIR=$PWD/build
 SRC_DIR=$PWD
 DLS_DIR=$PWD/sources
-STAMPS_DIR=${TMP_DIR}/stamps
 
 #
 # Sources definitions
@@ -274,7 +273,7 @@ gdb_install()
 
 print_usage()
 {
-  echo "Usage : build-xtool {arm, microblaze, mips, x86, native} INSTALL_DIR"
+  echo "Usage : $TOOL {arm, microblaze, mips, x86, native} INSTALL_DIR"
   exit
 }
 
@@ -287,26 +286,16 @@ if [ $# -lt 2 ]; then
 fi
 
 case "$1" in
-arm*)
-ARCH=arm
-;;
-
-native* | x86*)
-ARCH=i386
-;;
-
-mips*)
-ARCH=mips
-;;
-
-microblaze*)
-ARCH=microblaze
-;;
-
-*)
-print_usage $0
-;;
+   arm*)           ARCH=arm ;;
+   native* | x86*) ARCH=i386 ;;
+   mips*)          ARCH=mips ;;
+   microblaze*)    ARCH=microblaze ;;
+   *)              echo "Unsupported target: $1";
+                   print_usage $0 ;;
 esac
+
+TMP_DIR=$PWD/build-${ARCH}
+STAMPS_DIR=${TMP_DIR}/stamps
 
 TARGET=${ARCH}-sls-dnaos
 
