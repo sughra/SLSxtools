@@ -36,7 +36,6 @@ NB_PROC=`cat /proc/cpuinfo | grep "processor" | wc -l`
 JOPT=-j${NB_PROC}
 
 SRC_DIR=$PWD
-DLS_DIR=$PWD/sources
 
 #
 # Sources definitions
@@ -308,7 +307,6 @@ fi ;
 print_greatings
 
 mkdir -p ${TMP_DIR}
-mkdir -p ${DLS_DIR}
 mkdir -p ${INSTALL_DIR}
 mkdir -p ${STAMPS_DIR}
 
