@@ -30,7 +30,6 @@ GDB_CFLAGS="-DHAVE_DECL_STPCPY=1"
 #
 
 HERE=`pwd`
-TOOL="$0"
 
 
 NB_PROC=`cat /proc/cpuinfo | grep "processor" | wc -l`
@@ -273,7 +272,7 @@ gdb_install()
 
 print_usage()
 {
-  echo "Usage : $TOOL {arm, microblaze, mips, x86, native} INSTALL_DIR"
+  echo "Usage : $1 {arm, c6x, microblaze, mips, x86, native} INSTALL_DIR"
   exit
 }
 
@@ -290,6 +289,7 @@ case "$1" in
    native* | x86*) ARCH=i386 ;;
    mips*)          ARCH=mips ;;
    microblaze*)    ARCH=microblaze ;;
+   c6x*)           ARCH=tic6x ;;
    *)              echo "Unsupported target: $1";
                    print_usage $0 ;;
 esac
