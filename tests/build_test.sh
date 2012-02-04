@@ -1,5 +1,7 @@
 #! /bin/bash 
 
+APP_DIR=/home/nfournel/projects/APES/apps/ParallelMjpeg.git
+
 
 # #############################################################################
 #  Print Functions
@@ -74,12 +76,43 @@ error()
 #  Test Functions
 # #############################################################################
 
+build_toolchain() {
+   CUR_ARCH=$1
+   cd ${BASEDIR}/..
+   ${BUILD_SCRIPT} ${CUR_ARCH} ${BUILD_DIR}/xtools_${CUR_ARCH}
+}
+
+compilation_test() {
+
+   CUR_ARCH=$1
+
+   case ${CUR_ARCH} in
+	   arm|mips)
+		   cd ${APP_DIR}
+		   export PATH=${SAVE_PATH}:${BUILD_DIR}/xtools_${CUR_ARCH}/bin
+		   git checkout -q ${arch}
+		   source install.sh
+		   apes-compose -c
+		   apes-compose || error "Compilation error"
+		   echo "Passed"
+		   ;;
+	   *)
+		   echo "Skipped"
+		   ;;
+   esac
+}
+
+# #############################################################################
+#  Main Function
+# #############################################################################
+
 BASEDIR=${PWD}
 
 ARCHS="arm mips microblaze c6x x86"
 BUILD_SCRIPT=./build_xtools
 
 BUILD_DIR=/tmp/xtools_tests/
+SAVE_PATH=$PATH
 
 print_greatings
 
@@ -89,10 +122,10 @@ cd ${BASEDIR}/..
 for arch in ${ARCHS} ; do
 
 	print_step "Building "$arch
-	${BUILD_SCRIPT} ${arch} ${BUILD_DIR}/xtools_${arch} || error $arch
+	build_toolchain ${arch} || error $arch
 
-	# add compilation tests HERE
-	
+	print_step "Compile test "$arch
+	compilation_test ${arch} || error $arch
 
 	rm -fr ${BASEDIR}/../build-*
 
