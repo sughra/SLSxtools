@@ -32,46 +32,35 @@ GDB_CFLAGS="-DHAVE_DECL_STPCPY=1"
 HERE=`pwd`
 
 NB_PROC=`cat /proc/cpuinfo | grep "processor" | wc -l`
-JOPT=-j${NB_PROC}
+
+if [ "${SEQUENTIAL}" == "yes" ]; then
+	JOPT=-j1
+else
+	JOPT=-j${NB_PROC}
+fi
 
 SRC_DIR=$PWD
+
+#MULTILIB_OPT=--disable-multilib
+MULTILIB_OPT=--enable-multilib
 
 #
 # Sources definitions
 #
 
-#PATCH_URL=git://tima-sls.imag.fr
-##PATCH_REPOSITORY=GnuPatches
-#PATCH_REPOSITORY=Gnew_patches
-
 # binutils stuffs
-# BINUTILS_DIR=${BINUTILS_BASE}
-# BINUTILS_ARCHIVE=${BINUTILS_BASE}.tar.bz2
-# BINUTILS_REPOSITORY="http://ftp.gnu.org/gnu/binutils"
 BINUTILS_BASE=binutils
 BINUTILS_DIR=${BINUTILS_BASE}
 
 # GCC stuffs
-# GCC_BASE=gcc-${GCC_VER}
-# GCC_DIR=${GCC_BASE}
-# GCC_ARCHIVE=${GCC_BASE}.tar.bz2
-# GCC_REPOSITORY="ftp://ftp.gnu.org/gnu/gcc/gcc-"${GCC_VER}
 GCC_BASE=gcc
 GCC_DIR=${GCC_BASE}
 
 # Newlib stuffs
-# NEWLIB_BASE=newlib-${NEWLIB_VER}
-# NEWLIB_DIR=${NEWLIB_BASE}
-# NEWLIB_ARCHIVE=${NEWLIB_BASE}.tar.gz
-# NEWLIB_REPOSITORY="ftp://sources.redhat.com/pub/newlib"
 NEWLIB_BASE=newlib
 NEWLIB_DIR=${NEWLIB_BASE}
 
 # gdb stuffs
-# GDB_BASE=gdb-${GDB_VER}
-# GDB_DIR=${GDB_BASE}
-# GDB_ARCHIVE=${GDB_BASE}.tar.bz2
-# GDB_REPOSITORY="ftp://ftp.gnu.org/gnu/gdb"
 GDB_BASE=gdb
 GDB_DIR=${GDB_BASE}
 
@@ -181,7 +170,7 @@ binutils_install()
   --target=${TARGET}                    \
   --disable-nls                         \
   --disable-werror                      \
-  --enable-multilib     &> logs/configure.log || return
+  ${MULTILIB_OPT}     &> logs/configure.log || return
 
   print_substep "compiling ..."
   make ${JOPT}          &> logs/make.log      || return
@@ -206,15 +195,16 @@ gcc_1_install()
 
   print_substep "configuring ..."
 
-#  --enable-multilib                 \
   CFLAGS=${GCC_CFLAGS}              \
   ${SRC_DIR}/${GCC_DIR}/configure   \
   --prefix=${INSTALL_DIR}           \
   --target=${TARGET}                \
   --disable-nls                     \
+  --with-system-zlib                \
   --with-newlib                     \
   --enable-interwork                \
-  --enable-languages=c      &> logs/configure.log || return
+  ${MULTILIB_OPT}                   \
+  --enable-languages=c,c++      &> logs/configure.log || return
 
   print_substep "compiling ..."
   make all-gcc ${JOPT}      &> logs/make_1.log    || return
@@ -242,7 +232,7 @@ newlib_install()
   ${SRC_DIR}/${NEWLIB_DIR}/configure      \
   --prefix=${INSTALL_DIR}                 \
   --target=${TARGET}                      \
-  --enable-multilib                       \
+  ${MULTILIB_OPT}                         \
   --disable-nls                           \
   --enable-interwork                      \
   --enable-newlib-io-long-long            \
@@ -268,10 +258,10 @@ gcc_2_install()
   cd ${TMP_DIR}/gcc_build
 
   print_substep "compiling ..." 
-  make all ${JOPT}                      &> logs/make_2.log    || return
+  make all ${JOPT}                   &> logs/make_2.log    || return
 
   print_substep "installing ..."
-  make install ${JOPT}                  &> logs/install_2.log || return
+  make install ${JOPT}               &> logs/install_2.log || return
 
   touch ${STAMPS_DIR}/gcc_2_installed
 }
@@ -295,7 +285,7 @@ gdb_install()
   --target=${TARGET}          \
   --disable-nls               \
   --disable-builtins          \
-  --enable-multilib           &> logs/configure.log || return
+  ${MULTILIB_OPT}             &> logs/configure.log || return
 
   print_substep "compiling ..." 
   make ${JOPT}                &> logs/make.log      || return
