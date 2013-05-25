@@ -179,6 +179,7 @@ binutils_install()
   ${SRC_DIR}/${BINUTILS_DIR}/configure  \
   --prefix=${INSTALL_DIR}               \
   --target=${TARGET}                    \
+  ${BINUTILS_EXTRA_OPTS}                \
   --disable-nls                         \
   --disable-werror                      \
   --enable-multilib     &> logs/configure.log || return
@@ -211,6 +212,7 @@ gcc_1_install()
   ${SRC_DIR}/${GCC_DIR}/configure   \
   --prefix=${INSTALL_DIR}           \
   --target=${TARGET}                \
+  ${GCC_EXTRA_OPTS}                 \
   --disable-nls                     \
   --with-newlib                     \
   --enable-interwork                \
@@ -242,6 +244,7 @@ newlib_install()
   ${SRC_DIR}/${NEWLIB_DIR}/configure      \
   --prefix=${INSTALL_DIR}                 \
   --target=${TARGET}                      \
+  ${NEWLIB_EXTRA_OPTS}                    \
   --enable-multilib                       \
   --disable-nls                           \
   --enable-interwork                      \
@@ -293,6 +296,7 @@ gdb_install()
   ${SRC_DIR}/${GDB_DIR}/configure \
   --prefix=${INSTALL_DIR}     \
   --target=${TARGET}          \
+  ${GDB_EXTRA_OPTS}           \
   --disable-nls               \
   --disable-builtins          \
   --enable-multilib           &> logs/configure.log || return
