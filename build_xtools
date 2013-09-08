@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # DNAOS Cross-compile toolchain compilation script                     
-# Copyright (C) 2009, 2011 nfournel, TIMA Laboratory                         
+# Copyright (C) 2009, 2011 nfournel, TIMA Laboratory                   
 #                                                                      
 # This program is free software: you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -73,7 +73,7 @@ if [ -t 1 ] ; then # stdout in terminal
 		256)
 			INFO_LINE_COLOR="$(tput sgr0)"                  # White
 			INFO_TEXT_COLOR="$(tput bold)$(tput setaf 46)"  # Green
-			
+
 			ERROR_LINE_COLOR="$(tput bold)$(tput setaf 9)"  # Red
 			ERROR_TEXT_COLOR="$(tput bold)$(tput setaf 9)"  # Red
 			NO_COLOR="$(tput sgr0)"
@@ -81,7 +81,7 @@ if [ -t 1 ] ; then # stdout in terminal
 		*)
 			INFO_LINE_COLOR="$(tput bold)$(tput setaf 3)"   # Yellow
 			INFO_TEXT_COLOR="$(tput bold)$(tput setaf 6)"   # Blue
-			
+
 			ERROR_LINE_COLOR="$(tput bold)$(tput setaf 2)"  # Red
 			ERROR_TEXT_COLOR="$(tput bold)$(tput setaf 2)"  # Red
 			NO_COLOR="$(tput sgr0)"
@@ -90,10 +90,10 @@ if [ -t 1 ] ; then # stdout in terminal
 else # stdout in file !!!
 	INFO_LINE_COLOR=""
 	INFO_TEXT_COLOR=""
-	
+
 	ERROR_LINE_COLOR=""
 	ERROR_TEXT_COLOR=""
-	
+
 	NO_COLOR=""
 fi
 
@@ -206,7 +206,7 @@ gcc_1_install()
   --with-newlib                     \
   --enable-interwork                \
   ${MULTILIB_OPT}                   \
-  --enable-languages=c,c++      &> logs/configure.log || return
+  --enable-languages=c,c++         &> logs/configure.log || return
 
   print_substep "compiling ..."
   make all-gcc ${JOPT}      &> logs/make_1.log    || return
