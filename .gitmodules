@@ -10,3 +10,6 @@
 [submodule "gcc"]
 	path = gcc
 	url = ../gcc.git
+[submodule "binutils-gdb"]
+	path = binutils-gdb
+	url = ../binutils-gdb.git
