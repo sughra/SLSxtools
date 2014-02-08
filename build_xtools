@@ -302,7 +302,7 @@ gdb_install()
 
 print_usage()
 {
-  echo "Usage : $1 {arm, c6x, microblaze, mips, x86, native} INSTALL_DIR"
+  echo "Usage : $1 {arm, c6x, microblaze, mips, x86, native, sparc} INSTALL_DIR"
   exit
 }
 
@@ -320,6 +320,7 @@ case "$1" in
    mips*)          ARCH=mips ;;
    microblaze*)    ARCH=microblaze ;;
    c6x*)           ARCH=tic6x ;;
+   sparc*)         ARCH=sparc ;;
    *)              echo "Unsupported target: $1";
                    print_usage $0 ;;
 esac
