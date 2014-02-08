@@ -19,6 +19,8 @@
 
 BINUTILS_CFLAGS=
 
+BINUTILS_GDB_CFLAGS=
+
 GCC_CFLAGS=
 
 NEWLIB_CFLAGS=
@@ -51,6 +53,10 @@ MULTILIB_OPT=--enable-multilib
 # binutils stuffs
 BINUTILS_BASE=binutils
 BINUTILS_DIR=${BINUTILS_BASE}
+
+# binutils-gdb stuffs
+BINUTILS_GDB_BASE=binutils-gdb
+BINUTILS_GDB_DIR=${BINUTILS_GDB_BASE}
 
 # GCC stuffs
 GCC_BASE=gcc
@@ -182,6 +188,39 @@ binutils_install()
   touch ${STAMPS_DIR}/binutils_installed
 }
 
+binutils_gdb_install()
+{
+  print_step "Installing "${BINUTILS_GDB_BASE}
+
+  cd ${TMP_DIR}
+
+  rm -fr binutils_gdb_build
+  mkdir -p binutils_gdb_build
+  cd binutils_gdb_build
+
+  mkdir -p logs
+
+  print_substep "configuring ..."
+  CFLAGS=${BINUTILS_GDB_CFLAGS}             \
+  ${SRC_DIR}/${BINUTILS_GDB_DIR}/configure  \
+  --prefix=${INSTALL_DIR}                   \
+  --target=${TARGET}                        \
+  ${BINUTILS_GDB_EXTRA_OPTS}                \
+  --disable-nls                             \
+  --disable-werror                          \
+  ${MULTILIB_OPT}                           &> logs/configure.log || return
+
+  print_substep "compiling gdb ... (sequential)"
+  make all-gdb                              &> logs/make.log      || return
+  print_substep "compiling ... "
+  make all ${JOPT}                          &> logs/make.log      || return
+
+  print_substep "installing ..."
+  make install                              &> logs/install.log   || return
+
+  touch ${STAMPS_DIR}/binutils_gdb_installed
+}
+
 gcc_1_install()
 {
   print_step "Installing "${GCC_BASE}" bootstrap"
@@ -206,13 +245,13 @@ gcc_1_install()
   --with-newlib                     \
   --enable-interwork                \
   ${MULTILIB_OPT}                   \
-  --enable-languages=c,c++         &> logs/configure.log || return
+  --enable-languages=c,c++          &> logs/configure.log || return
 
   print_substep "compiling ..."
-  make all-gcc ${JOPT}      &> logs/make_1.log    || return
+  make all-gcc ${JOPT}              &> logs/make_1.log    || return
 
   print_substep "installing ..."
-  make install-gcc ${JOPT}  &> logs/install_1.log || return
+  make install-gcc ${JOPT}          &> logs/install_1.log || return
 
   touch ${STAMPS_DIR}/gcc_1_installed
 }
@@ -346,8 +385,11 @@ mkdir -p ${STAMPS_DIR}
 # Perform the installation process
 #
 
-[ -e ${STAMPS_DIR}/binutils_installed ] || \
-    binutils_install || install_error
+## [ -e ${STAMPS_DIR}/binutils_installed ] || \
+##     binutils_install || install_error
+
+[ -e ${STAMPS_DIR}/binutils_gdb_installed ] || \
+    binutils_gdb_install || install_error
 
 [ -e ${STAMPS_DIR}/gcc_1_installed ] || \
     gcc_1_install    || install_error
@@ -360,7 +402,7 @@ export PATH=$PATH:${INSTALL_DIR}/bin
 [ -e ${STAMPS_DIR}/gcc_2_installed ] || \
     gcc_2_install    || install_error
 
-[ -e ${STAMPS_DIR}/gdb_installed ] || \
-    gdb_install      || install_error
+## [ -e ${STAMPS_DIR}/gdb_installed ] || \
+##     gdb_install      || install_error
 
 print_step "Done."
