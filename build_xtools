@@ -356,6 +356,7 @@ fi
 case "$1" in
    arm*)           ARCH=arm ;;
    native* | x86*) ARCH=i386 ;;
+   i[3-7]86)       ARCH=$1 ;;
    mips*)          ARCH=mips ;;
    microblaze*)    ARCH=microblaze ;;
    c6x*)           ARCH=tic6x ;;
