@@ -358,7 +358,8 @@ case "$1" in
    native* | x86*) ARCH=i386 ;;
    i[3-7]86)       ARCH=$1 ;;
    mips*)          ARCH=mips ;;
-   microblaze*)    ARCH=microblaze ;;
+   microblaze)     ARCH=microblaze ;;
+   microblazeel)   ARCH=microblazeel ;;
    c6x*)           ARCH=tic6x ;;
    sparc*)         ARCH=sparc ;;
    *)              echo "Unsupported target: $1";
